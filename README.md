@@ -12,6 +12,12 @@ Installed and correctly configured Go (golang.org). The tool was written under G
 
 For a dozen of so URLs checked every 10 minutes one worker is fine. If you have a lot URLs to check or want to do it faster, just increase a number of workers.
 
+By default monitor sets up a handler at address `localhost:18080`, it can be specified by a flag: `-addr`.
+
+If one doesn't not need RPC the `-norpc` flag can be used.
+
+**Warning** the config file is saved on interruption.
+
 # Modifying config through RPC call
 
 As a service usually run a long time I recommend to use below command to add / remove URLs:

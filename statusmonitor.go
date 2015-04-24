@@ -97,7 +97,7 @@ func (c *Config) Remove(eq EqCmp) *ResConf {
 }
 
 func (c *Config) Save(filepath string) error {
-	f, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	f, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -115,6 +115,7 @@ func LoadConfig(filePath string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
 		return nil, err
@@ -300,7 +301,7 @@ type tmplHelper struct {
 	Status  *Status
 }
 
-func StartStatusHandler(sc *StatusChecker) {
+func RegisterStatusHandler(sc *StatusChecker) {
 	http.HandleFunc("/status", func(rw http.ResponseWriter, req *http.Request) {
 		arr := make([]tmplHelper, 0)
 		for _, c := range sc.config.Configs {
@@ -310,7 +311,6 @@ func StartStatusHandler(sc *StatusChecker) {
 			log.Printf("Tmpl render: %s", err)
 		}
 	})
-	go http.ListenAndServe("localhost:8080", nil)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -321,9 +321,10 @@ var (
 	workers        = flag.Int("workers", 1, "How many worker threads to start.")
 	configFilePath = flag.String("config", "", "Config file.")
 	interval       = flag.Duration("interval", 60*time.Second, "How often check all pages.")
+	noRpc          = flag.Bool("norpc", false, "Don't set upt RPC server.")
 
 	mode = flag.String("mode", "server", "server|add|remove - add and remove send a command to server.")
-	addr = flag.String("addr", "localhost:1234", "A server where rpc will be exposed.")
+	addr = flag.String("addr", "localhost:18080", "A server where rpc will be exposed.")
 
 	sName = flag.String("sname", "", "A name for address.")
 	sAddr = flag.String("saddr", "", "A resource address to check.")
@@ -333,12 +334,6 @@ func main() {
 	flag.Parse()
 
 	if *mode == "server" {
-		configs := []*ResConf{
-			&ResConf{"Google", "http://www.googssle.com", "5m"},
-			&ResConf{"Google", "http://www.google.com", "5m"},
-			&ResConf{"Wykop", "http://www.wykop.pl", "5m"},
-		}
-
 		var config *Config
 		var err error
 		if len(*configFilePath) > 0 {
@@ -349,29 +344,15 @@ func main() {
 			log.Printf("Loaded config from: %s with %d addresses", *configFilePath, len(config.Configs))
 		}
 		sc := NewStatusChecker(config)
-		admin := &AdminServer{sc}
-		rpc.Register(admin)
-		rpc.HandleHTTP()
-		l, e := net.Listen("tcp", *addr)
-		if e != nil {
-			log.Fatal("listen error:", e)
+		if *noRpc == false {
+			admin := &AdminServer{sc}
+			rpc.Register(admin)
+			rpc.HandleHTTP()
 		}
-		go http.Serve(l, nil)
 
-		http.HandleFunc("/status", func(rw http.ResponseWriter, req *http.Request) {
-			arr := make([]tmplHelper, 0)
-			for _, c := range sc.config.Configs {
-				arr = append(arr, tmplHelper{c.Name, c.Address, sc.statuses[c.Address]})
-			}
-			if err := statusTmpl.Execute(rw, arr); err != nil {
-				log.Printf("Tmpl render: %s", err)
-			}
-		})
-		go http.ListenAndServe("localhost:8080", nil)
-
-		if len(*configFilePath) == 0 {
-			sc.config.Configs = configs
-		}
+		RegisterStatusHandler(sc)
+		go http.ListenAndServe(*addr, nil)
+		log.Printf("Listening at: %s", *addr)
 
 		// Handle interruptions.
 		c := make(chan os.Signal, 1)
