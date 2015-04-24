@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -382,7 +381,7 @@ func main() {
 		if err != nil {
 			log.Fatal("AdminServer error:", err)
 		}
-		fmt.Printf("AdminServer.Add: %d\n", reply)
+		log.Printf("AdminServer.Add: %d\n", reply)
 	} else if *mode == "remove" {
 		client, err := rpc.DialHTTP("tcp", *addr)
 		if err != nil {
@@ -410,6 +409,6 @@ func main() {
 		if err != nil {
 			log.Fatal("AdminServer error:", err)
 		}
-		fmt.Printf("AdminServer.Remove: %d\n", reply)
+		log.Printf("AdminServer.Remove: %d\n", reply)
 	}
 }
