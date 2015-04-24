@@ -1,0 +1,44 @@
+{
+ "Configs": [
+  {
+   "Name": "Facebook",
+   "Address": "http://facebook.com",
+   "Interval": ""
+  },
+  {
+   "Name": "Wykop",
+   "Address": "http://wykop.pl",
+   "Interval": ""
+  },
+  {
+   "Name": "Walutomat",
+   "Address": "http://walutomat.pl",
+   "Interval": ""
+  },
+  {
+   "Name": "Google",
+   "Address": "https://google.com",
+   "Interval": ""
+  },
+  {
+   "Name": "Google+",
+   "Address": "https://plus.google.com",
+   "Interval": ""
+  },
+  {
+   "Name": "Twitter",
+   "Address": "https://twitter.com",
+   "Interval": ""
+  },
+  {
+   "Name": "Programista",
+   "Address": "http://programistamag.pl",
+   "Interval": ""
+  },
+  {
+   "Name": "Notes of SWE",
+   "Address": "http://blog.pawelsz.eu",
+   "Interval": ""
+  }
+ ]
+}
